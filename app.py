@@ -13,6 +13,9 @@ import torch.nn as nn
 
 st.set_page_config(page_title="Deepfake Detection", layout="wide")
 
+ADMIN_EMAIL = "admin@deepfake.com"
+ADMIN_PASSWORD = "admin123"
+
 # ---------- DATABASE SETUP ----------
 def get_db_connection():
     return sqlite3.connect("users.db", check_same_thread=False)
@@ -60,7 +63,8 @@ Thank you for using Deepfake Detection System.
             server.send_message(msg)
     except Exception as e:
         st.error("Email sending failed")
-# ========================================================
+
+
 
 
 # ---------- LOGIN FUNCTION ----------
@@ -68,12 +72,22 @@ def login_page():
     st.title("Login")
 
     email = st.text_input("Enter your Email")
+    password = st.text_input("Enter Password", type="password")
 
     if st.button("Login"):
+
         if email == "":
             st.warning("Please enter your email")
             return
 
+        # -------- ADMIN LOGIN --------
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            st.session_state["logged_in"] = True
+            st.session_state["is_admin"] = True
+            st.success("Admin Login Successful")
+            st.rerun()
+
+        # -------- USER LOGIN --------
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -84,31 +98,58 @@ def login_page():
             )
             conn.commit()
         except sqlite3.IntegrityError:
-            # Email already exists – just login
             pass
         finally:
             conn.close()
 
         st.session_state["logged_in"] = True
+        st.session_state["is_admin"] = False
         st.session_state["user_email"] = email
-        st.success("Welcome!")
+        st.success("User Login Successful")
         st.rerun()
     
-    # ---------- SESSION CHECK ----------
+  
+
+# ---------- SESSION CHECK ----------
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 
+if "is_admin" not in st.session_state:
+    st.session_state["is_admin"] = False
+
 if not st.session_state["logged_in"]:
     login_page()
-    st.stop()        
+    st.stop()     
    
 st.title(" Deepfake Detection Dashboard")
 
-st.sidebar.success("Logged in as admin")
+if st.session_state["is_admin"]:
+    st.sidebar.success("Logged in as Admin")
+else:
+    st.sidebar.success("Logged in as User")
 
 if st.sidebar.button("Logout"):
     st.session_state["logged_in"] = False
+    st.session_state["is_admin"] = False
     st.rerun()
+# ---------- ADMIN VIEW USERS ----------
+if st.session_state["is_admin"]:
+    st.subheader("Registered Users")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT email, created_at FROM users")
+    users = cursor.fetchall()
+    conn.close()
+
+    if users:
+        for user in users:
+            st.write(f" {user[0]} |  {user[1]}")
+    else:
+        st.info("No users registered yet.")
+# If admin, don't show detection system
+if st.session_state["is_admin"]:
+    st.stop()
 
 FRAMES_DIR = "frames"
 FACE_DIR = "face_frames"
@@ -257,7 +298,6 @@ if uploaded_video:
             st.markdown(f"""
             ###  Final Video Result
             - **Prediction:** `{final_result}`
-            - **Fake Frames:** {fake_count}
-            - **Real Frames:** {real_count}
-            - **Average Confidence:** {round(avg_conf*100, 2)} %
+            - **Average Confidence:**
+            {round(avg_conf*100, 2)} %
             """)
