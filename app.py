@@ -10,11 +10,11 @@ from PIL import Image
 import numpy as np
 import torchvision.models as models
 import torch.nn as nn
+import re
 
 st.set_page_config(page_title="Deepfake Detection", layout="wide")
 
-ADMIN_EMAIL = "admin@deepfake.com"
-ADMIN_PASSWORD = "admin123"
+ADMIN_PASSWORD = "Admin@admin"
 
 # ---------- DATABASE SETUP ----------
 def get_db_connection():
@@ -72,22 +72,28 @@ def login_page():
     st.title("Login")
 
     email = st.text_input("Enter your Email")
-    password = st.text_input("Enter Password", type="password")
 
-    if st.button("Login"):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        user_login = st.button("User Login")
+
+    with col2:
+        admin_login = st.button("Login as Admin")
+
+    # ---------------- USER LOGIN ----------------
+    if user_login:
 
         if email == "":
             st.warning("Please enter your email")
             return
 
-        # -------- ADMIN LOGIN --------
-        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
-            st.session_state["logged_in"] = True
-            st.session_state["is_admin"] = True
-            st.success("Admin Login Successful")
-            st.rerun()
+        # ✅ Email validation
+        email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+        if not re.match(email_pattern, email):
+            st.error("Invalid Email Format")
+            return
 
-        # -------- USER LOGIN --------
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -107,8 +113,20 @@ def login_page():
         st.session_state["user_email"] = email
         st.success("User Login Successful")
         st.rerun()
-    
-  
+
+    # ---------------- ADMIN LOGIN ----------------
+     if admin_login:
+        admin_password = st.text_input("Enter Admin Password", type="password", key="admin_pass")
+
+        if admin_password:
+            if admin_password == ADMIN_PASSWORD:
+     st.session_state["logged_in"] = True
+                st.session_state["is_admin"] 
+     = True
+                st.success("Admin Login Successful")
+            st.rerun()
+        else:
+            st.error("Invalid Admin Password")
 
 # ---------- SESSION CHECK ----------
 if "logged_in" not in st.session_state:
