@@ -115,13 +115,6 @@ def login_page():
         st.rerun()
 
    # ---------------- ADMIN LOGIN ----------------
-if admin_login:
-
-    admin_password = st.text_input(
-        "Enter Admin Password",
-        type="password",
-        key="admin_pass"
-    )
 
     if admin_password:
         if admin_password == ADMIN_PASSWORD:
