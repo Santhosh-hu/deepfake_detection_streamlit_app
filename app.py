@@ -114,16 +114,20 @@ def login_page():
         st.success("User Login Successful")
         st.rerun()
 
-    # ---------------- ADMIN LOGIN ----------------
-     if admin_login:
-        admin_password = st.text_input("Enter Admin Password", type="password", key="admin_pass")
+   # ---------------- ADMIN LOGIN ----------------
+if admin_login:
 
-        if admin_password:
-            if admin_password == ADMIN_PASSWORD:
-     st.session_state["logged_in"] = True
-                st.session_state["is_admin"] 
-     = True
-                st.success("Admin Login Successful")
+    admin_password = st.text_input(
+        "Enter Admin Password",
+        type="password",
+        key="admin_pass"
+    )
+
+    if admin_password:
+        if admin_password == ADMIN_PASSWORD:
+            st.session_state["logged_in"] = True
+            st.session_state["is_admin"] = True
+            st.success("Admin Login Successful")
             st.rerun()
         else:
             st.error("Invalid Admin Password")
