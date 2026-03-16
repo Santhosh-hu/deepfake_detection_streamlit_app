@@ -4,3 +4,5 @@ pillow
 torch
 torchvision
 opencv-python-headless
+timm
+mtcnn
